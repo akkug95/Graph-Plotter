@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Question 2</title>
+
+	</head>
+	<body>
+<script src="charts.js"></script>
+<script src="export.js"></script>
+
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto">
+
+<input type="file" id="selectFiles" value="Import" /><br />
+<button id="import">Import</button>
+
+</div>
+
+
+
+<script type="text/javascript">
+
+
+  document.getElementById('import').onclick = function() { 
+    var files = document.getElementById('selectFiles').files;// getting json file
+  console.log(files);
+  if (files.length <= 0) {
+    return false;
+  }
+
+  var fr = new FileReader();
+
+  fr.onload = function(e) { 
+  console.log(e);
+    var obj = JSON.parse(e.target.result);// json file is parsed
+
+	var g1 = obj["groups"][0]["peaks"];// list of peaks of group 1
+	
+
+	var rt1=g1[0]["eic"]["rt"];
+	var rt2=g1[1]["eic"]["rt"];
+	var rt3=g1[2]["eic"]["rt"];
+	var it1=g1[0]["eic"]["intensity"];
+	var it2=g1[1]["eic"]["intensity"];
+	var it3=g1[2]["eic"]["intensity"];
+
+	var data1=[];
+	var data2=[];
+	var data3=[];
+	//loading data
+	for(var i=0; i<rt1.length;i++)
+	data1.push([rt1[i],it1[i]]);// storing ('rt','intensity') pair of sample 1 of group 1
+	
+	for(var i=0; i<rt2.length;i++)
+	data2.push([rt2[i],it2[i]]);// storing ('rt','intensity') pair of sample 2 of group 1
+	
+	for(var i=0; i<rt3.length;i++)
+	data3.push([rt3[i],it3[i]]);// storing ('rt','intensity') pair of sample 3 of group 1
+	
+
+// plotting graph
+	
+	Highcharts.chart('container', {
+			chart: {
+				type: 'areaspline'
+			},
+			title: {
+				text: ' Intenship Assignment '
+			},
+			legend: {
+				layout: 'vertical',
+				align: 'left',
+				verticalAlign: 'top',
+				x: 150,
+				y: 150,
+				floating: true,
+				borderWidth: 1,
+				backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+			},
+			xAxis: {
+				title: {
+					text: ' Retention Time '
+				}
+			},
+			yAxis: {
+				title: {
+					text: ' Intensity '
+				}
+			},
+			tooltip: {
+				shared: true,
+				valueSuffix: ' units'
+			},
+			credits: {
+				enabled: false
+			},
+			plotOptions: {
+				areaspline: {
+					fillOpacity: 0.5
+				}
+			},
+			 series:[{
+				name : g1[0]["sampleName"],
+				data : data1,
+				type : 'areaspline'
+			},{
+				name : g1[1]["sampleName"],
+				data : data2,
+				type : 'areaspline'
+			}
+			,{
+				name : g1[2]["sampleName"],
+				data : data3,
+				type : 'areaspline'
+			}]
+		});
+
+
+		
+		
+  }
+
+  fr.readAsText(files.item(0));
+};
+
+		</script>
+	</body>
+</html>
