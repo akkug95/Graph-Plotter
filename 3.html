@@ -4,74 +4,187 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Question 3</title>
 
+		<style>
+			#myDropdown{
+				height:2em;
+				width:20%;
+			}
+			#load{
+				margin: 2em;
+				padding: 2em;
+				border: 2px solid black;
+				width:50%;
+				border-radius:2em;
+			}
+			#selectFiles, #import{
+				width:50%;
+				font-size:1.5em;
+			}
+			#import{
+				border:1px solid black;
+				border-radius: 2em;
+			}
+</style>
+		
 	</head>
 	<body>
 <script src="charts.js"></script>
 <script src="export.js"></script>
-
-<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto">
-
-<input type="file" id="selectFiles" value="Import" /><br />
-<button id="import">Import</button>
-
-
-</div>
+	<center>
+	<div id="load">
+		<input type="file" id="selectFiles" value="Import" /><br /><br/>
+		<button id="import" >Upload</button>
+	</div>
+	</center>
+	<div class="dropdown">
+	<!--button id="gr_select" onclick="myFunction()" class="dropbtn" style="display:none">Choose Group</button-->
+		<center>
+		<select id="myDropdown" class="dropdown-content" style="display:none" onchange="fn()">
+			<option value="null" disabled selected>Choose one</option>
+			<option value="-1">All</a>
+	  </select>
+	  </center>
+	</div>
+	
+<div id="container" style="min-width: 310px; height: 400px; display:none; margin: 0 auto"></div>
 
 
 
 <script type="text/javascript">
 
+var gr,g;
+
     document.getElementById('import').onclick = function() { 
-    var files = document.getElementById('selectFiles').files;// getting json file
-  console.log(files);
-  if (files.length <= 0) {
-    return false;
-  }
+	document.getElementById('load').style.display='none';
 
-  var fr = new FileReader();
+	document.getElementById('myDropdown').style.display='block';
+	document.getElementById('container').style.display='block';
+    var files = document.getElementById('selectFiles').files;
+		// getting json file
+		//console.log(files);
+	  if (files.length <= 0) {
+		return false;
+	  }
 
-  fr.onload = function(e) { 
-  console.log(e);
-    var obj = JSON.parse(e.target.result); // json file is parsed
+	  var fr = new FileReader();
 
-  var g = obj["groups"];	// g is the list of groups
-  var i,j,k,di=0;
-  var dat = [];
-  for(i=0;i< g.length ;i++){
-	var gi= g[i]["peaks"];
-	var rt = [];
-	var it = [];
-	
-	for(j=0;j< gi.length; j++,di++){
-		rt[j]= [];
-		it[j]= [];
+	  fr.onload = function(e) { 
+	 // console.log(e);
+		var obj = JSON.parse(e.target.result); // json file is parsed
 		
-		dat[di]=[];
-
-		rt[j] =gi[j]["eic"]["rt"];
-		it[j] =gi[j]["eic"]["intensity"];
+		gmain = obj["groups"];
 		
-		for(k=0;k<rt[j].length;k++){
-			dat[di].push([rt[j][k],it[j][k]]);	// storing ('rt','intensity') pair of each sample in dat[] 
+		for(var li=0;li< gmain.length;li++){
+			var mydiv = document.getElementById("myDropdown");
+			var aTag = document.createElement('option');
+			aTag.setAttribute('value',li);
+			aTag.innerHTML = li+1;
+			mydiv.appendChild(aTag);
 		}
-	}
-  }
-	
-	var sr= [],di=0;
-	for(i=0; i< g.length; i++){
-		gi= g[i]["peaks"];
-		for(j=0;j< gi.length;j++){
-			sr.push({
-				"name": gi[j]["sampleName"],
-				"data":	dat[di++],
-				"type": 'areaspline'
-			});						// sr[] is the list of all samples
-		}
-	}
+		
+	  }
 
-	//plotting graph
+	  fr.readAsText(files.item(0));
+	};
+
+	function fn(){
+			
+			var x = document.getElementById("myDropdown").value;
+			gr=x;
+			
+			start(gr);
+		}
+		
+	// Close the dropdown if the user clicks outside of it
+	window.onclick = function(event) {
+		  if (!event.target.matches('.dropbtn')) {
+			
+			var dropdowns = document.getElementsByClassName("dropdown-content");
+			var i;
+			for (i = 0; i < dropdowns.length; i++) {
+			  var openDropdown = dropdowns[i];
+			  if (openDropdown.classList.contains('show')) {
+				openDropdown.classList.remove('show');
+			  }
+			}
+		  }
+		}
+
 	
-	Highcharts.chart('container', {
+	
+	function start(group){
+		
+		 var gfl=0,len;  
+			len= gmain.length;
+		
+			if(group>=0){
+				g=gmain[group];
+				gfl=1;
+				len=1;
+			}else{
+				g=gmain;
+			}
+			
+		  var i,j,k,di=0;
+		  var dat = [],nam=[],names;
+		  for(i=0;i< len ;i++){
+			if(gfl==1){
+				var gi= g["peaks"];
+			}else{
+				var gi= g[i]["peaks"];
+			}
+			
+			var rt = [];
+			var it = [];
+			var ind,temp;
+			for(j=0;j< gi.length; j++,di++){
+				rt[j]= [];
+				it[j]= [];		
+				
+				rt[j] =gi[j]["eic"]["rt"];
+				it[j] =gi[j]["eic"]["intensity"];
+				
+				names=gi[j]["sampleName"];
+				ind= nam.indexOf(names);
+				temp=di;
+				
+				if(ind>=0){
+					temp--;
+					di=ind;
+				}else{
+					dat[di]=[];
+					nam
+					nam.push(gi[j]["sampleName"]);
+				}
+				
+				for(k=0;k<rt[j].length;k++){			
+						dat[di].push([rt[j][k],it[j][k]]);	// storing ('rt','intensity') pair of each sample in dat[] 			
+				}
+				di=temp;
+			
+			}
+		  }
+		
+				
+			var sr= [],di=0,flag;
+			
+			for(i=0;i<nam.length;i++){
+				sr.push({
+					"name":nam[i],
+					"data":dat[i],
+					"type":'areaspline'
+				});
+			}
+
+
+		//plotting graph
+		
+		graph(sr);
+	}
+	
+	
+	function graph(sr){
+		Highcharts.chart('container', {
 			chart: {
 				type: 'areaspline'
 			},
@@ -113,15 +226,10 @@
 			series: sr		
 			
 		});
-
-
-		
-		
-  }
-
-  fr.readAsText(files.item(0));
-};		
+	
+	}
 
 		</script>
 	</body>
 </html>
+
